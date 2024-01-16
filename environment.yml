@@ -1,0 +1,37 @@
+# Check out this great guide to environment files!
+# https://carpentries-incubator.github.io/introduction-to-conda-for-data-scientists/04-sharing-environments/index.html
+
+name: change-me
+
+# higher channels get priority
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+
+# Prefer conda dependencies over pip wherever possible
+dependencies:
+  - python=3.9
+  - pip
+  - ipdb
+  - pytest
+  - pre-commit
+  - flake8
+  - black
+  - ipykernel
+  - ipython
+  - tqdm
+  - numpy
+  - pandas
+  - scikit-learn
+  - matplotlib
+  # Uncomment the below to add pip dependencies if necessary"
+  # - pip:
+    # - mydep==1.0
+
+# Define any *static* OS environment variables here
+#   Note: anything dynamic (e.g., referencing other variables) must be set post
+#   environment creation using `conda env config vars set`. See setting the
+#   PYTHONPATH in the README.
+variables:
+  CACHE_NUMBER: 0

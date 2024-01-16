@@ -1,0 +1,26 @@
+
+
+# See GiHub's Doc on citation files: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-citation-files
+
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+# Below is the citation for this template repository. Replace it with your own!
+
+### REPLACE ME >>>
+
+cff-version: 1.2.0
+title: >-
+  Research Project Template
+message: >-
+  If you find this project or code useful, please consider citing it as below!
+type: software
+authors:
+  - given-names: Ellis L
+    family-names: Brown
+    name-suffix: II
+    email: ellisbrown@cmu.edu
+    affiliation: Carnegie Mellon University 
+    orcid: 'https://orcid.org/0000-0002-8117-0778 '
+
+### REPLACE ME <<<
