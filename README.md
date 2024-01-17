@@ -64,7 +64,7 @@ Feel free to cite our paper using this .bibtex or .cff formats in this repositor
 
 
 ```bibtex
-@article{Xiomin Li, Mykhailo Sakevych,
+@article{Xiaomin Li, Mykhailo Sakevych,
   title={BioDiffusion: A Versatile Diffusion Model for Biomedical Signal
 Synthesis},
   author={IMICS},
