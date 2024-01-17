@@ -36,7 +36,7 @@ conda env config vars set PYTHONPATH=$(pwd):$(pwd)/src
 
 <!-- USAGE -->
 ## Usage
-In order to replicate experiment|train our model on your own you can use this cmd snippets: 
+In order to replicate experiment | train our model on your own you can use this cmd snippets: 
 ### Unconditional diffusion model for 3 channel data:
 ```python ddpm.py```
 ### Conditional diffusion model for 3 channel data:
