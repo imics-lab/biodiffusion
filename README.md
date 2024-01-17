@@ -5,10 +5,10 @@
 # Project Template Biodifusion
 A new project template for research projects. 
 <div align="left">
-<!-- DESCRIPTION -->
+
 ## Description
 This repository serves as the primary codebase for implementing a Diffusion model, specifically designed for the generation of synthetic signals. The model is a pivotal component used in the research paper titled "BioDiffusion: A Versatile Diffusion Model for Biomedical Signal Synthesis" ([accessible here](change.link)).
-<!-- SETUP -->
+
 ## Setup
 
 Before running the code, ensure that you have the following prerequisites installed:
@@ -36,6 +36,7 @@ conda env config vars set PYTHONPATH=$(pwd):$(pwd)/src
 
 <!-- USAGE -->
 ## Usage
+In order to replicate experiment|train our model on your own you can use this cmd snippets: 
 ### Unconditional diffusion model for 3 channel data:
 ```python ddpm.py```
 ### Conditional diffusion model for 3 channel data:
