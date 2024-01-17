@@ -267,3 +267,22 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/python,jupyternotebooks,data,linux,macos,windows
+src/signal/checkpoint/
+src/wandb/
+src/datasets/
+src/results/
+src/signal/results/
+src/signal/heartbeat/
+src/models/*
+src/models/
+src/signal/runs/
+src/signal/models/
+src/.__pycache__/
+src/signal/__pycache__/
+src/signal/runs/*
+src/signal/models/*
+src/__pycache__/*
+src/signal/__pycache__/*
+src/runs/
+src/runs/*
+
