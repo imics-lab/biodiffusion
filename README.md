@@ -2,8 +2,7 @@
 
 
 <!-- TITLE -->
-# Project Template Biodifusion
-A new project template for research projects. 
+# Biodifusion
 <div align="left">
 
 ## Description
