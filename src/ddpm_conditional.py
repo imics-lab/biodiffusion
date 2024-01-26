@@ -124,6 +124,7 @@ class Diffusion:
                 loss = self.mse(noise, predicted_noise)
                 avg_loss += loss
             if train:
+                
                 self.train_step(loss)
                 wandb.log({"train_mse": loss.item(),
                             "learning_rate": self.scheduler.get_last_lr()[0]})

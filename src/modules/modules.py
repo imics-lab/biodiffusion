@@ -1,4 +1,3 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -79,7 +78,7 @@ class DoubleConv(nn.Module):
             return self.double_conv(x)
 
 
-class Down(nn.Module):
+class  Down(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=256):
         super().__init__()
         self.maxpool_conv = nn.Sequential(
@@ -129,7 +128,7 @@ class Up(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, c_in=3, c_out=3, time_dim=256, remove_deep_conv=False):
+    def __init__(self, c_in, c_out, time_dim= 256, remove_deep_conv=False):
         super().__init__()
         self.time_dim = time_dim
         self.remove_deep_conv = remove_deep_conv
@@ -168,7 +167,7 @@ class UNet(nn.Module):
         pos_enc = torch.cat([pos_enc_a, pos_enc_b], dim=-1)
         return pos_enc
 
-    def unet_forwad(self, x, t):
+    def unet_forwad(self, x, t):        
         x1 = self.inc(x)
         x2 = self.down1(x1, t)
         x2 = self.sa1(x2)
@@ -180,8 +179,9 @@ class UNet(nn.Module):
         x4 = self.bot1(x4)
         if not self.remove_deep_conv:
             x4 = self.bot2(x4)
-        x4 = self.bot3(x4)
 
+        x4 = self.bot3(x4)
+        
         x = self.up1(x4, x3, t)
         x = self.sa4(x)
         x = self.up2(x, x2, t)
@@ -198,7 +198,7 @@ class UNet(nn.Module):
 
 
 class UNet_conditional(UNet):
-    def __init__(self, c_in=3, c_out=3, time_dim=256, num_classes=None, **kwargs):
+    def __init__(self, c_in, c_out, time_dim = 256, num_classes=None, **kwargs):
         super().__init__(c_in, c_out, time_dim, **kwargs)
         if num_classes is not None:
             self.label_emb = nn.Embedding(num_classes, time_dim)
@@ -206,7 +206,7 @@ class UNet_conditional(UNet):
     def forward(self, x, t, y=None):
         t = t.unsqueeze(-1)
         t = self.pos_encoding(t, self.time_dim)
-
+        
         if y is not None:
             t += self.label_emb(y)
 
