@@ -6,7 +6,7 @@
 <div align="left">
 
 ## Description
-This repository serves as the primary codebase for implementing a Diffusion model, specifically designed for the generation of synthetic signals. The model is a pivotal component used in the research paper titled "BioDiffusion: A Versatile Diffusion Model for Biomedical Signal Synthesis" ([accessible here](change.link)).
+This repository serves as the primary codebase for implementing a Diffusion model, specifically designed for the generation of synthetic signals. The model is a pivotal component used in the research paper titled "BioDiffusion: A Versatile Diffusion Model for Biomedical Signal Synthesis" ([accessible here](https://arxiv.org/abs/2401.10282)).
 
 ## Setup
 
@@ -60,7 +60,7 @@ After [training](#training), you can sample from the trained model using the fol
 # Set device and load the pre-trained UNet model
 device = "cuda:2"
 model = UNet().to(device)
-ckpt = torch.load("../../models/DDPM_Unconditional/ckpt.pt")
+ckpt = torch.load("../../src/models/DDPM_Unconditional/ckpt.pt")
 model.load_state_dict(ckpt)
 # Create a Diffusion model instance and sample from it
 diffusion = Diffusion(img_size=32, device=device)
@@ -74,7 +74,7 @@ n = 10
 device = "cuda:3"
 # Create a Diffusion model instance and load the trained model checkpoint
 diffusion = Diffusion(img_size=32, device=device)
-diffusion.load("../../models/DDPM_conditional")
+diffusion.load("../../src/models/DDPM_conditional")
 # Prepare labels and sample from the diffusion model
 labels = torch.full((n,), 1).long().to(diffusion.device)
 sampled_images = diffusion.sample(use_ema=False, labels=labels)
@@ -130,7 +130,7 @@ diffusion = GaussianDiffusion1D(
 ).to(device)
 ```
 
-Make sure to adjust the file paths and model names as needed.
+#### Make sure to adjust the file paths and model names as needed.
 
 
 <!-- CONTRIBUTING -->
@@ -145,11 +145,13 @@ Feel free to cite our paper using this .bibtex or .cff formats in this repositor
 
 
 ```bibtex
-@article{Xiaomin Li, Mykhailo Sakevych,
-  title={BioDiffusion: A Versatile Diffusion Model for Biomedical Signal
-Synthesis},
-  author={IMICS},
-  year={2024}
+@misc{li2024biodiffusion,
+      title={BioDiffusion: A Versatile Diffusion Model for Biomedical Signal Synthesis}, 
+      author={Xiaomin Li and Mykhailo Sakevych and Gentry Atkinson and Vangelis Metsis},
+      year={2024},
+      eprint={2401.10282},
+      archivePrefix={arXiv},
+      primaryClass={eess.SP}
 }
 ```
 
