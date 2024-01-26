@@ -37,7 +37,7 @@ conda env config vars set PYTHONPATH=$(pwd):$(pwd)/src
 
 <!-- USAGE -->
 ## Training
-In order to replicate first you will need to retrain our model: 
+In order to use our model first you will need to retrain it: 
 ### Unconditional diffusion model for 3 channel data:
 ```python ddpm.py```
 ### Conditional diffusion model for 3 channel data:
