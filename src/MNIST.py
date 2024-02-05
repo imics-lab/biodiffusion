@@ -1,7 +1,8 @@
+# Import necessary libraries
 import torch
 import torchvision
 
-# #MNIST dataset
+# Load MNIST dataset
 train_dataset = torchvision.datasets.MNIST(root='../datasets/',
                                            train=True, 
                                            transform=torchvision.transforms.ToTensor(),
@@ -11,17 +12,17 @@ test_dataset = torchvision.datasets.MNIST(root='../datasets/',
                                           train=False, 
                                           transform=torchvision.transforms.ToTensor())
 
-# # Data loader
+# Data loader
 train_loader = torch.utils.data.DataLoader(dataset=train_dataset,
                                            batch_size=100, 
                                            shuffle=True)
 
 test_loader = torch.utils.data.DataLoader(dataset=test_dataset,
-                                        batch_size=100, 
-                                        shuffle=False)
+                                          batch_size=100, 
+                                          shuffle=False)
         
 
-# create a MNIST dataset that are 1D, has img, img_label, cond_img, cond_label, object_label 
+# Create a MNIST dataset that is 1D or 2D, with img, img_label, cond_img, cond_label, object_label 
 
 from torch.utils.data import Dataset, DataLoader
 import torch
@@ -29,32 +30,31 @@ import torchvision
 import random
 
 class MNIST_Conditional(Dataset):
-    
-    def __init__(self, data_path='../datasets/', oneD = True):
+    def __init__(self, data_path='../datasets/', oneD=True):
         """
-        A dataloader use to load MNIST training set either in 1D or 2D
-        return a dictionary with the keys: org_img, org_label, target_img, target_label, cond_label
-        
+        A dataloader used to load MNIST training set either in 1D or 2D.
+        Returns a dictionary with the keys: org_img, org_label, target_img, target_label, cond_label.
         """
         train_dataset = torchvision.datasets.MNIST(root=data_path,
-                                           train=True, 
-                                           transform=torchvision.transforms.ToTensor(),
-                                           download=True)
+                                                   train=True, 
+                                                   transform=torchvision.transforms.ToTensor(),
+                                                   download=True)
         
         self.data = train_dataset.data
         self.targets = train_dataset.targets
         
         index_list = [i for i in range(len(self.data))]
-        # get orginal data
+        
+        # Get original data
         self.org_data = self.data[index_list]
         self.org_labels = self.targets[index_list]
         
-        # get target data 
+        # Get target data 
         random.shuffle(index_list)
         self.tagt_data = self.data[index_list]
         self.tagt_labels = self.targets[index_list]
     
-        img_size = len(self.data[0]) # 28 
+        img_size = len(self.data[0])  # 28 
         
         if oneD:
             self.org_data = self.org_data.view(-1, 1, img_size * img_size)
@@ -63,9 +63,8 @@ class MNIST_Conditional(Dataset):
     def __len__(self):
         return len(self.targets)
         
-        
     def __getitem__(self, index):
-        # random sample two image in the train_dataset
+        # Randomly sample two images from the train_dataset
         ret = {}
         org_img = self.org_data[index]
         org_label = self.org_labels[index]
@@ -77,7 +76,6 @@ class MNIST_Conditional(Dataset):
         ret['target_img'] = target_img
         ret['target_label'] = target_label
         ret['cond_label'] = f'from_{org_label}_to_{target_label}'
-        
         
         return ret
     
@@ -116,30 +114,25 @@ def get_data(args):
     return train_dataloader, val_dataloader
 
 class MNIST_unconditional(Dataset):
-    def __init__(self, data_path='../datasets/', oneD = True):
+    def __init__(self, data_path='../datasets/', oneD=True):
         """
-        A dataloader use to load MNIST training set either in 1D or 2D
-        return a dictionary with the keys: org_img, org_label, target_img, target_label, cond_label
-        
+        A dataloader used to load MNIST training set either in 1D or 2D.
         """
         train_dataset = torchvision.datasets.MNIST(root=data_path,
-                                           train=True, 
-                                           transform=torchvision.transforms.ToTensor(),
-                                           download=True)
+                                                   train=True, 
+                                                   transform=torchvision.transforms.ToTensor(),
+                                                   download=True)
         
         self.data = train_dataset.data
         self.targets = train_dataset.targets
         
-        img_size = len(self.data[0]) # 28 
+        img_size = len(self.data[0])  # 28 
         
         if oneD:
             self.data = self.data.view(-1, 1, img_size * img_size)
             
-        
-    
     def __len__(self):
         return len(self.targets)
         
     def __getitem__(self, index):
-        
         return self.data[index], self.targets[index]

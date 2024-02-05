@@ -17,24 +17,48 @@ from torch.utils import data
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=logging.INFO, datefmt="%I:%M:%S")
 data_path = "./heartbeat/mitbih_train.csv"
 
+class TrainingDataset(data.Dataset):
+    """
+    Custom PyTorch Dataset for training.
+    """
+    def __init__(self, filename):
+        self.fiveClassECG = mitbih_allClass(filename=filename)
+
+    def __len__(self):
+        return len(self.fiveClassECG)
+
+    def __getitem__(self, idx):
+        signals, labels = self.fiveClassECG[idx]
+        return signals, labels
 
 def train(args):
+    """
+    Training function for the Deep Diffusion Probabilistic Model (DDPM) on 1D signals with classification.
+
+    Parameters:
+        - args (argparse.Namespace): Command-line arguments.
+    """
     setup_logging(args.run_name)
     device = args.device
-    fiveClassECG = mitbih_allClass(filename = data_path)
-    dataloader = data.DataLoader(fiveClassECG, batch_size=32, num_workers=4, shuffle=True)
+    dataset = TrainingDataset(filename=data_path)
+    dataloader = data.DataLoader(dataset, batch_size=args.batch_size, num_workers=4, shuffle=True)
     classes = 5
-    model = Unet1D_cls_free(
-        dim = 64,
-        dim_mults = (1, 2, 4, 8),
-        num_classes = args.num_classes,
-        cond_drop_prob = 0.5,
-        channels = 1).to(device)
 
+    # Define the UNet model
+    model = Unet1D_cls_free(
+        dim=64,
+        dim_mults=(1, 2, 4, 8),
+        num_classes=args.num_classes,
+        cond_drop_prob=0.5,
+        channels=1
+    ).to(device)
+
+    # Define the Gaussian Diffusion model
     diffusion = GaussianDiffusion1D_cls_free(
         model,
-        seq_length = 128,
-        timesteps = 1000).to(device)
+        seq_length=128,
+        timesteps=1000
+    ).to(device)
     
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     logger = SummaryWriter(os.path.join("runs", args.run_name))
@@ -46,7 +70,9 @@ def train(args):
         for i, (signals, labels) in enumerate(pbar):
             signals = signals.to(device).to(torch.float)
             labels = labels.to(device).to(torch.long)
-            loss = diffusion(signals, classes = labels)
+            
+            # Calculate loss using the diffusion model
+            loss = diffusion(signals, classes=labels)
 
             optimizer.zero_grad()
             loss.backward()
@@ -54,15 +80,18 @@ def train(args):
             
             logger.add_scalar("loss", loss.item(), global_step=epoch * l + i)
 
+        # Generate and save sampled signals
         labels = torch.randint(0, args.num_classes, (10,)).to(device)
         sampled_signals = diffusion.sample(
-            classes = labels,
-            cond_scale = 3.)
-        sampled_signals.shape # (10, 1, 128)
+            classes=labels,
+            cond_scale=3.
+        )
         
-        is_best = False
-        
+        # Save the generated signals as images
         save_signals_cls_free(sampled_signals, labels, os.path.join("results", args.run_name, f"{epoch}.jpg"))
+
+        # Save model checkpoint
+        is_best = False
         save_checkpoint({
             'epoch': epoch + 1,
             'model': model,
@@ -70,8 +99,10 @@ def train(args):
             'optimizer': optimizer.state_dict(),
         }, is_best, os.path.join("checkpoint", args.run_name))
 
-
 def launch():
+    """
+    Launch the training process with predefined parameters.
+    """
     import argparse
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
@@ -84,7 +115,5 @@ def launch():
     args.lr = 3e-4
     train(args)
 
-
 if __name__ == '__main__':
     launch()
-

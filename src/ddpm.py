@@ -1,3 +1,4 @@
+# Import necessary libraries
 import os
 import torch
 import torch.nn as nn
@@ -12,28 +13,41 @@ import argparse
 import logging
 from torch.utils.tensorboard import SummaryWriter
 
+# Set up logging
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=logging.INFO, datefmt="%I:%M:%S")
+
+# Define configuration using SimpleNamespace
 config = SimpleNamespace(    
-    run_name = "DDPM_Unconditional",
-    epochs = 100,
-    batch_size = 12,
-    seed = 43,
-    slice_size =1,
-    num_classes = 10,
-    img_size = 32,
-    dataset_path = get_cifar(img_size=32),
-    train_folder = "train",
-    val_folder = "test",
-    num_workers = 10,
-    device = "cuda:2",
-    lr = 3e-4,
-    noise_steps = 1000
+    run_name="DDPM_Unconditional",
+    epochs=100,
+    batch_size=12,
+    seed=43,
+    slice_size=1,
+    num_classes=10,
+    img_size=32,
+    dataset_path=get_cifar(img_size=32),
+    train_folder="train",
+    val_folder="test",
+    num_workers=10,
+    device="cuda:2",
+    lr=3e-4,
+    noise_steps=1000
 )
 
-
-
+# Define the Diffusion class
 class Diffusion:
     def __init__(self, noise_steps=1000, beta_start=1e-4, beta_end=0.02, img_size=256, device="cuda"):
+        """
+        Initializes the Diffusion class.
+
+        Args:
+            noise_steps (int): Number of noise steps.
+            beta_start (float): Starting value for beta in noise schedule.
+            beta_end (float): Ending value for beta in noise schedule.
+            img_size (int): Image size.
+            device (str): Device for computation.
+        """
+        # Initialize parameters
         self.noise_steps = noise_steps
         self.beta_start = beta_start
         self.beta_end = beta_end
@@ -45,18 +59,53 @@ class Diffusion:
         self.alpha_hat = torch.cumprod(self.alpha, dim=0)
 
     def prepare_noise_schedule(self):
+        """
+        Prepares the noise schedule using beta_start and beta_end.
+
+        Returns:
+            torch.Tensor: Noise schedule.
+        """
         return torch.linspace(self.beta_start, self.beta_end, self.noise_steps)
 
     def noise_images(self, x, t):
+        """
+        Adds noise to images at a specific timestep.
+
+        Args:
+            x (torch.Tensor): Input images.
+            t (torch.Tensor): Timestep.
+
+        Returns:
+            tuple: Tuple containing noisy images and noise.
+        """
         sqrt_alpha_hat = torch.sqrt(self.alpha_hat[t])[:, None, None, None]
         sqrt_one_minus_alpha_hat = torch.sqrt(1 - self.alpha_hat[t])[:, None, None, None]
         Ɛ = torch.randn_like(x)
         return sqrt_alpha_hat * x + sqrt_one_minus_alpha_hat * Ɛ, Ɛ
 
     def sample_timesteps(self, n):
+        """
+        Samples random timesteps.
+
+        Args:
+            n (int): Number of timesteps to sample.
+
+        Returns:
+            torch.Tensor: Sampled timesteps.
+        """
         return torch.randint(low=1, high=self.noise_steps, size=(n,))
 
     def sample(self, model, n):
+        """
+        Generates samples using the diffusion model.
+
+        Args:
+            model: Diffusion model.
+            n (int): Number of samples.
+
+        Returns:
+            torch.Tensor: Generated samples.
+        """
         logging.info(f"Sampling {n} new images....")
         model.eval()
         with torch.no_grad():
@@ -77,7 +126,7 @@ class Diffusion:
         x = (x * 255).type(torch.uint8)
         return x
 
-
+# Define the train function
 def train(args):
     device = args.device
     train_dataloader, val_dataloader = get_data(args)
@@ -109,6 +158,7 @@ def train(args):
         save_images(sampled_images, os.path.join("./results", args.run_name, f"{epoch}.jpg"))
         torch.save(model.state_dict(), os.path.join("./models", args.run_name, f"ckpt.pt"))
 
+# Define the argument parser
 def parse_args(config):
     parser = argparse.ArgumentParser(description='Process hyper-parameters')
     parser.add_argument('--run_name', type=str, default=config.run_name, help='name of the run')
@@ -128,21 +178,11 @@ def parse_args(config):
     for k, v in args.items():
         setattr(config, k, v)
 
+# Define the launch function
 def launch():
     parse_args(config)
     train(config)
 
+# Execute the script
 if __name__ == '__main__':
     launch()
-    # device = "cuda"
-    # model = UNet().to(device)
-    # ckpt = torch.load("./working/orig/ckpt.pt")
-    # model.load_state_dict(ckpt)
-    # diffusion = Diffusion(img_size=64, device=device)
-    # x = diffusion.sample(model, 8)
-    # print(x.shape)
-    # plt.figure(figsize=(32, 32))
-    # plt.imshow(torch.cat([
-    #     torch.cat([i for i in x.cpu()], dim=-1),
-    # ], dim=-2).permute(1, 2, 0).cpu())
-    # plt.show()

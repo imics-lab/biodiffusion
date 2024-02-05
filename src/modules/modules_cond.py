@@ -1,9 +1,8 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+# Exponential Moving Average (EMA) class
 class EMA:
     def __init__(self, beta):
         super().__init__()
@@ -32,6 +31,7 @@ class EMA:
         ema_model.load_state_dict(model.state_dict())
 
 
+# Self-Attention module
 class SelfAttention(nn.Module):
     def __init__(self, channels, size):
         super(SelfAttention, self).__init__()
@@ -57,7 +57,7 @@ class SelfAttention(nn.Module):
         return attention_value.swapaxes(2, 1).view(-1, self.channels, self.size, self.size)
 
 
-
+# Double Convolution block
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None, residual=False):
         super().__init__()
@@ -79,6 +79,7 @@ class DoubleConv(nn.Module):
             return self.double_conv(x)
 
 
+# Down-sampling block
 class Down(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=256):
         super().__init__()
@@ -90,10 +91,7 @@ class Down(nn.Module):
 
         self.emb_layer = nn.Sequential(
             nn.SiLU(),
-            nn.Linear(
-                emb_dim,
-                out_channels
-            ),
+            nn.Linear(emb_dim, out_channels),
         )
 
     def forward(self, x, t):
@@ -102,6 +100,7 @@ class Down(nn.Module):
         return x + emb
 
 
+# Up-sampling block
 class Up(nn.Module):
     def __init__(self, in_channels, out_channels, emb_dim=256):
         super().__init__()
@@ -114,10 +113,7 @@ class Up(nn.Module):
 
         self.emb_layer = nn.Sequential(
             nn.SiLU(),
-            nn.Linear(
-                emb_dim,
-                out_channels
-            ),
+            nn.Linear(emb_dim, out_channels),
         )
 
     def forward(self, x, skip_x, t):
@@ -128,6 +124,7 @@ class Up(nn.Module):
         return x + emb
 
 
+# U-Net architecture
 class UNet(nn.Module):
     def __init__(self, c_in=1, c_out=10, time_dim=256, device="cuda:7"):
         super().__init__()
@@ -189,6 +186,7 @@ class UNet(nn.Module):
         return output
 
 
+# Conditional U-Net architecture
 class UNet_conditional(nn.Module):
     def __init__(self, c_in=1, c_out=1, time_dim=256, num_classes=None, device="cuda:7"):
         super().__init__()
@@ -257,7 +255,6 @@ class UNet_conditional(nn.Module):
 
 
 if __name__ == '__main__':
-    # net = UNet(device="cpu")
     net = UNet_conditional(num_classes=10, device="cpu")
     print(sum([p.numel() for p in net.parameters()]))
     x = torch.randn(3, 3, 64, 64)

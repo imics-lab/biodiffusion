@@ -16,70 +16,51 @@ from torch.utils import data
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=logging.INFO, datefmt="%I:%M:%S")
 data_path = "./heartbeat/mitbih_train.csv"
 
-# def train(args):
-#     setup_logging(args.run_name)
-#     device = args.device
-#     twoClassECG = mitbih_twoClass(filename = data_path, class_id1 = 1, class_id2 = 0)
-#     dataloader = data.DataLoader(twoClassECG, batch_size=32, num_workers=4, shuffle=True)
-#     model = Unet1D(
-#         dim = 64,
-#         self_condition = True,
-#         dim_mults = (1, 2, 4, 8),
-#         channels = 1).to(device)
-#     # seq_length must be able to divided by dim_mults
-#     diffusion = GaussianDiffusion1D(
-#         model,
-#         seq_length = 128,
-#         timesteps = 1000,
-#         objective = 'pred_v').to(device)
-#     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
-#     logger = SummaryWriter(os.path.join("runs", args.run_name))
-#     l = len(dataloader)
+class TrainingDataset(data.Dataset):
+    """
+    Custom PyTorch Dataset for training with conditional data.
+    """
+    def __init__(self, filename, class_id):
+        self.cond_ECG = mitbih_masked(filename=filename, class_id=class_id)
 
-#     for epoch in range(args.epochs):
-#         logging.info(f"Starting epoch {epoch}:")
-#         pbar = tqdm(dataloader)
-#         for i, (sig1, _, sig2, _) in enumerate(pbar):
-#             sig1 = sig1.to(device).to(torch.float)
-#             sig2 = sig2.to(device).to(torch.float)
-#             loss = diffusion(sig1, sig2) # GaussianDiffusion1D doesn't have x_self_cond parameter
+    def __len__(self):
+        return len(self.cond_ECG)
 
-#             optimizer.zero_grad()
-#             loss.backward()
-#             optimizer.step()
-
-#             logger.add_scalar("loss", loss.item(), global_step=epoch * l + i)
-
-#         sampled_signals = diffusion.sample(batch_size = 10)
-#         sampled_signals.shape # (10, 1, 128)
-        
-#         is_best = False
-        
-#         save_signals(sampled_signals, os.path.join("results", args.run_name, f"{epoch}.jpg"))
-#         save_checkpoint({
-#             'epoch': epoch + 1,
-#             'model': model,
-#             'model_state_dict': model.state_dict(),
-#             'optimizer': optimizer.state_dict(),
-#         }, is_best, os.path.join("checkpoint", args.run_name))
-
+    def __getitem__(self, idx):
+        data_dict = {
+            'org_data': self.cond_ECG[idx]['org_data'],
+            'cond_data': self.cond_ECG[idx]['cond_data']
+        }
+        return data_dict
 
 def train(args):
+    """
+    Training function for the Deep Diffusion Probabilistic Model (DDPM) on 1D signals with conditional data.
+
+    Parameters:
+        - args (argparse.Namespace): Command-line arguments.
+    """
     setup_logging(args.run_name)
     device = args.device
-    cond_ECG = mitbih_masked(filename = data_path, class_id = 0)
-    dataloader = data.DataLoader(cond_ECG, batch_size=32, num_workers=4, shuffle=True)
+    dataset = TrainingDataset(filename=data_path, class_id=0)
+    dataloader = data.DataLoader(dataset, batch_size=args.batch_size, num_workers=4, shuffle=True)
+    
+    # Define the UNet model
     model = Unet1D(
-        dim = 64,
-        self_condition = True,
-        dim_mults = (1, 2, 4, 8),
-        channels = 1).to(device)
-    # seq_length must be able to divided by dim_mults
+        dim=64,
+        self_condition=True,
+        dim_mults=(1, 2, 4, 8),
+        channels=1
+    ).to(device)
+    
+    # Define the Gaussian Diffusion model
     diffusion = GaussianDiffusion1D(
         model,
-        seq_length = 128,
-        timesteps = 1000,
-        objective = 'pred_v').to(device)
+        seq_length=128,
+        timesteps=1000,
+        objective='pred_v'
+    ).to(device)
+
     optimizer = optim.AdamW(model.parameters(), lr=args.lr)
     logger = SummaryWriter(os.path.join("runs", args.run_name))
     l = len(dataloader)
@@ -92,7 +73,9 @@ def train(args):
         for i, data_dict in enumerate(pbar):
             sig1 = data_dict['org_data'].to(device).to(torch.float)
             sig2 = data_dict['cond_data'].to(device).to(torch.float)
-            loss = diffusion(sig1, sig2) # GaussianDiffusion1D doesn't have x_self_cond parameter
+            
+            # Calculate loss using the diffusion model
+            loss = diffusion(sig1, sig2)
 
             optimizer.zero_grad()
             loss.backward()
@@ -100,11 +83,12 @@ def train(args):
 
             logger.add_scalar("loss", loss.item(), global_step=epoch * l + i)
         
-        index_list = [i for i in range(len(cond_ECG))]
+        # Generate and save sampled signals
+        index_list = [i for i in range(len(dataset))]
         random.shuffle(index_list)
-        cond_data = torch.from_numpy(cond_ECG.cond_data[index_list][:sample_size])
+        cond_data = torch.from_numpy(dataset.cond_ECG.cond_data[index_list][:sample_size])
         cond_data = cond_data.to(device).to(torch.float)
-        sampled_signals = diffusion.sample(batch_size = sample_size, input_cond =cond_data)
+        sampled_signals = diffusion.sample(batch_size=sample_size, input_cond=cond_data)
         sampled_signals.shape # (sample_size, 1, 128)
         
         is_best = False
@@ -119,6 +103,9 @@ def train(args):
 
 
 def launch():
+    """
+    Launch the training process with predefined parameters.
+    """
     import argparse
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
