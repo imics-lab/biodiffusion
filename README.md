@@ -29,7 +29,7 @@ Create the Conda virtual environment using the [environment file](environment.ym
 conda env create -f environment.yml
 
 # dynamically set python path for the environment
-conda activate ml
+conda activate BioDiffusion
 conda env config vars set PYTHONPATH=$(pwd):$(pwd)/src
 ```
 
