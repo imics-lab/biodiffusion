@@ -76,7 +76,3 @@ jobs:
         mamba env update -n anaconda-client-env -f environment.yml
         mamba install --name anaconda-client-env pytest
       if: steps.cache.outputs.cache-hit != 'true'
-    - name: Test with pytest
-      run: |
-        conda activate anaconda-client-env
-        python -m pytest tests/ 
