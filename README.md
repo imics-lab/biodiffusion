@@ -2,7 +2,7 @@
 
 
 <!-- TITLE -->
-# Biodifusion
+# BioDiffusion: A Versatile Diffusion Model for Biomedical Signal Synthesis
 <div align="left">
 
 ## Description
