@@ -1,6 +1,7 @@
 # Import necessary libraries
 import argparse
 import logging
+import os.path
 from types import SimpleNamespace
 
 import torch
@@ -157,8 +158,16 @@ def train(args):
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
         sampled_images = diffusion.sample(model, n=images.shape[0])
-        save_images(sampled_images, os.path.join("./results", args.run_name, f"{epoch}.jpg"))
-        torch.save(model.state_dict(), os.path.join("./models", args.run_name, f"ckpt.pt"))
+        sample_image_dir = os.path.join("./results", args.run_name)
+        if not os.path.isdir(sample_image_dir):
+            os.makedirs(sample_image_dir)
+
+        checkpoints_dir = os.path.join("./models", args.run_name)
+        if not os.path.isdir(checkpoints_dir):
+            os.makedirs(checkpoints_dir)
+
+        save_images(sampled_images, os.path.join(sample_image_dir, f"{epoch}.jpg"))
+        torch.save(model.state_dict(), os.path.join(checkpoints_dir, f"ckpt.pt"))
 
 # Define the argument parser
 def parse_args(config):
