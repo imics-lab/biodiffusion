@@ -1,12 +1,20 @@
+import getpass
 import os
 from zipfile import ZipFile
 import sys
 from kaggle.api.kaggle_api_extended import KaggleApi
-def main(argv):
+from dotenv import load_dotenv
+def main():
         # Set your Kaggle API key
-    api_key = argv[1]
-    os.environ["KAGGLE_USERNAME"] = argv[2]
-    os.environ["KAGGLE_KEY"] = api_key
+    load_dotenv()
+    kaggle_username = os.environ.get('KAGGLE_USERNAME')
+    kaggle_key = os.environ.get('KAGGLE_KEY')
+    if kaggle_username == '':
+        kaggle_username = getpass.getpass('Enter your Kaggle username: ')
+        os.environ.__setitem__('KAGGLE_USERNAME', kaggle_username)
+    if kaggle_key == '':
+        kaggle_key = getpass.getpass('Enter your Kaggle API key: ')
+        os.environ.__setitem__('KAGGLE_KEY', kaggle_key)
 
     # Set dataset and destination paths
     dataset_name = "shayanfazeli/heartbeat"
@@ -27,4 +35,4 @@ def main(argv):
 
 
 if __name__=="__main__":
-    main(sys.argv)
+    main()
