@@ -296,3 +296,11 @@ wandb
 runs
 
 /AGENTS.md
+.claude/
+docs/
+examples/README_Examples.md
+src/signal/*
+*.jpg
+/results/DDPM_Unconditional/*
+/examples/image_example_code/datasets/archive/*
+/models/DDPM_conditional/*
